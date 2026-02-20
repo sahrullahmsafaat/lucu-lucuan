@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pertanyaan sahrullah</title>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 40%, #ffecd2 100%);
+    font-family: 'Nunito', sans-serif;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* floating hearts background */
+  .hearts-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .heart-float {
+    position: absolute;
+    font-size: 1.5rem;
+    animation: floatUp linear infinite;
+    opacity: 0.4;
+  }
+
+  @keyframes floatUp {
+    0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+    10%  { opacity: 0.4; }
+    90%  { opacity: 0.4; }
+    100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  }
+
+  /* Card */
+  .card {
+    position: relative;
+    z-index: 10;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    border-radius: 32px;
+    padding: 60px 50px 50px;
+    max-width: 480px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(255, 100, 130, 0.25), 0 4px 20px rgba(0,0,0,0.08);
+    border: 2px solid rgba(255,255,255,0.9);
+  }
+
+  .emoji-top {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: 20px;
+    animation: bounce 1.5s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  .question-number {
+    font-size: 0.8rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #ff6b9d;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-family: 'Pacifico', cursive;
+    font-size: 1.7rem;
+    color: #d63384;
+    line-height: 1.4;
+    margin-bottom: 40px;
+    text-shadow: 2px 2px 0px rgba(255, 100, 150, 0.15);
+  }
+
+  .btn-area {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1.1rem;
+    padding: 16px 48px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    letter-spacing: 1px;
+  }
+
+  .btn-yes {
+    background: linear-gradient(135deg, #ff6b9d, #ff4081);
+    color: white;
+    box-shadow: 0 8px 24px rgba(255, 64, 129, 0.4);
+  }
+  .btn-yes:hover {
+    transform: scale(1.08);
+    box-shadow: 0 12px 32px rgba(255, 64, 129, 0.5);
+  }
+  .btn-yes:active { transform: scale(0.97); }
+
+  .btn-no {
+    background: linear-gradient(135deg, #a8edea, #fed6e3);
+    color: #c94080;
+    box-shadow: 0 8px 24px rgba(168, 237, 234, 0.5);
+    position: fixed; /* will be repositioned by JS */
+    z-index: 999;
+  }
+
+  /* progress dots */
+  .dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #f9b8cf;
+    transition: background 0.3s, transform 0.3s;
+  }
+  .dot.active { background: #ff4081; transform: scale(1.3); }
+  .dot.done   { background: #ff4081; }
+
+  /* Final screen */
+  .final-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #ff6b9d, #ff4081);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    flex-direction: column;
+    color: white;
+  }
+  .final-screen.show { display: flex; }
+  .final-emoji { font-size: 5rem; animation: pulse 0.8s ease-in-out infinite alternate; }
+  @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.2); } }
+  .final-title {
+    font-family: 'Pacifico', cursive;
+    font-size: 2.5rem;
+    margin: 20px 0 12px;
+    text-shadow: 2px 4px 12px rgba(0,0,0,0.2);
+  }
+  .final-sub { font-size: 1.2rem; opacity: 0.9; font-weight: 600; }
+
+  /* confetti */
+  .confetti-piece {
+    position: fixed;
+    width: 10px; height: 10px;
+    top: -20px;
+    border-radius: 2px;
+    animation: confettiFall linear forwards;
+    z-index: 200;
+  }
+  @keyframes confettiFall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- floating hearts bg -->
+<div class="hearts-bg" id="heartsBg"></div>
+
+<!-- Main Card -->
+<div class="card" id="mainCard">
+  <span class="emoji-top" id="cardEmoji">🥺</span>
+  <div class="dots" id="dots"></div>
+  <div class="question-number" id="qNum">Pertanyaan 1 dari 3</div>
+  <h1 id="questionText">Apa kamu suka aku?</h1>
+  <div class="btn-area">
+    <button class="btn btn-yes" onclick="answerYes()">💖 Iya</button>
+    <button class="btn btn-no" id="btnNo" onclick="answerNo()">😒 Nggak</button>
+  </div>
+</div>
+
+<!-- Final Screen -->
+<div class="final-screen" id="finalScreen">
+  <div class="final-emoji">💝</div>
+  <div class="final-title">Yaaay! 🎉</div>
+  <div class="final-sub">Aku tau kok kamu suka aku~<br>makasih udah mau jadi pembantuku! 💕</div>
+</div>
+
+<script>
+  const questions = [
+    { emoji: "🥺", text: "Apa kamu suka aku?" },
+    { emoji: "😍", text: "Mau nggak JADI PEMBANTUKU?" },
+    { emoji: "💌", text: "Mau nggak ?" },
+  ];
+
+  let current = 0;
+  let noCount = 0;
+
+  // Setup dots
+  const dotsEl = document.getElementById('dots');
+  questions.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.id = 'dot' + i;
+    dotsEl.appendChild(d);
+  });
+
+  // Floating hearts
+  const heartsBg = document.getElementById('heartsBg');
+  const heartEmojis = ['❤️','💕','💖','💗','💓','💞','🌸','✨'];
+  for(let i = 0; i < 18; i++) {
+    const h = document.createElement('span');
+    h.className = 'heart-float';
+    h.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+    h.style.left = Math.random() * 100 + 'vw';
+    h.style.fontSize = (1 + Math.random() * 1.5) + 'rem';
+    h.style.animationDuration = (6 + Math.random() * 8) + 's';
+    h.style.animationDelay = -(Math.random() * 10) + 's';
+    heartsBg.appendChild(h);
+  }
+
+  // Initial NO button position (inline in card)
+  const btnNo = document.getElementById('btnNo');
+  function placeNoInitial() {
+    const card = document.getElementById('mainCard');
+    const rect = card.getBoundingClientRect();
+    btnNo.style.top = (rect.top + rect.height - 90) + 'px';
+    btnNo.style.left = (rect.left + rect.width / 2 + 20) + 'px';
+  }
+  window.addEventListener('load', placeNoInitial);
+  window.addEventListener('resize', placeNoInitial);
+
+  function answerNo() {
+    noCount++;
+    // make button run away
+    const margin = 80;
+    const maxX = window.innerWidth - 150 - margin;
+    const maxY = window.innerHeight - 60 - margin;
+    const newX = margin + Math.random() * maxX;
+    const newY = margin + Math.random() * maxY;
+    btnNo.style.transition = 'top 0.35s cubic-bezier(.68,-0.55,.27,1.55), left 0.35s cubic-bezier(.68,-0.55,.27,1.55)';
+    btnNo.style.top = newY + 'px';
+    btnNo.style.left = newX + 'px';
+
+    // shrink no button the more they try
+    const scale = Math.max(0.5, 1 - noCount * 0.07);
+    btnNo.style.transform = `scale(${scale})`;
+  }
+
+  function answerYes() {
+    if (current < questions.length - 1) {
+      // mark done
+      document.getElementById('dot' + current).classList.remove('active');
+      document.getElementById('dot' + current).classList.add('done');
+      current++;
+      document.getElementById('dot' + current).classList.add('active');
+
+      // update card
+      document.getElementById('cardEmoji').textContent = questions[current].emoji;
+      document.getElementById('questionText').textContent = questions[current].text;
+      document.getElementById('qNum').textContent = `Pertanyaan ${current + 1} dari ${questions.length}`;
+
+      // reset no button
+      noCount = 0;
+      btnNo.style.transition = 'none';
+      btnNo.style.transform = 'scale(1)';
+      placeNoInitial();
+
+      // heart burst
+      burstHearts();
+    } else {
+      // Final!
+      showFinal();
+    }
+  }
+
+  function burstHearts() {
+    for(let i = 0; i < 12; i++) {
+      const h = document.createElement('span');
+      h.textContent = ['💖','💕','✨','🌸'][Math.floor(Math.random()*4)];
+      h.style.cssText = `
+        position:fixed;font-size:${1+Math.random()*1.5}rem;
+        left:${20+Math.random()*60}vw;top:${20+Math.random()*60}vh;
+        pointer-events:none;z-index:50;
+        animation: burstFade 1s forwards;
+      `;
+      document.body.appendChild(h);
+      setTimeout(() => h.remove(), 1000);
+    }
+    // inject keyframe once
+    if (!document.getElementById('burstStyle')) {
+      const s = document.createElement('style');
+      s.id = 'burstStyle';
+      s.textContent = '@keyframes burstFade { from{opacity:1;transform:scale(0.5) translateY(0)} to{opacity:0;transform:scale(2) translateY(-60px)} }';
+      document.head.appendChild(s);
+    }
+  }
+
+  function showFinal() {
+    document.getElementById('finalScreen').classList.add('show');
+    launchConfetti();
+  }
+
+  function launchConfetti() {
+    const colors = ['#ff6b9d','#ff4081','#ffd700','#a8edea','#fff','#ffb3c6'];
+    for(let i = 0; i < 120; i++) {
+      setTimeout(() => {
+        const c = document.createElement('div');
+        c.className = 'confetti-piece';
+        c.style.left = Math.random() * 100 + 'vw';
+        c.style.background = colors[Math.floor(Math.random() * colors.length)];
+        c.style.width = (6 + Math.random() * 10) + 'px';
+        c.style.height = (6 + Math.random() * 10) + 'px';
+        c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        c.style.animationDuration = (2 + Math.random() * 3) + 's';
+        c.style.animationDelay = Math.random() * 0.5 + 's';
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 4000);
+      }, i * 20);
+    }
+  }
+</script>
+</body>
+</html>
